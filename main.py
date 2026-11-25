@@ -11,6 +11,7 @@ network, no randomness.
 import hashlib
 import os
 import sys
+import unicodedata
 
 ENTRY = "Relax, that cul-de-sac was a shortcut \u2014 the map just left out the wedding in the middle and the lake at the end."
 
@@ -25,7 +26,11 @@ def gate(line: str) -> None:
         raise ValueError(f"entry is {len(line)} characters, over the 200 limit")
     if "\n" in line or "\r" in line:
         raise ValueError("entry must be a single line")
-    line.encode("utf-8")  # raises if not valid UTF-8 text
+    if any(unicodedata.category(ch) == "Cc" for ch in line):
+        raise ValueError("entry must not contain control characters")
+    encoded = line.encode("utf-8")  # raises if not valid UTF-8 text
+    if len(encoded) > 200:
+        raise ValueError(f"entry is {len(encoded)} bytes, over the 200-byte cap")
 
 
 def main() -> int:
